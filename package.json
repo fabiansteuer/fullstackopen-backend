@@ -10,7 +10,7 @@
     "build:ui": "rm -rf build && cd ../fullstackopen/part2/phonebook/ && npm run build && cp -r build ../../../fullstackopen-backend",
     "deploy": "git push origin main",
     "deploy:full": "npm run build:ui && git add . && git commit -m 'UI build' && npm run deploy",
-    "logs:prod": "heroku logs --tail"
+    "logs:prod": "heroku logs --tail --app fullstackopen-backend-fabian"
   },
   "author": "Fabian",
   "dependencies": {
