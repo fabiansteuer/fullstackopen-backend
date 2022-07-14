@@ -13,10 +13,22 @@ mongoose
     console.log("Error connecting to MongoDB:", error.message);
   });
 
+const numberValidator = (number) => {
+  return /^\d{2,3}-\d+$/.test(number);
+};
+
 const personSchema = new mongoose.Schema({
   id: String,
   name: { type: String, minLength: 3, required: true },
-  number: { type: String, required: true },
+  number: {
+    type: String,
+    minLength: 8,
+    required: true,
+    validate: {
+      validator: numberValidator,
+      message: "Number must be in 12-345678 or 123-45678 format.",
+    },
+  },
 });
 
 personSchema.set("toJSON", {
