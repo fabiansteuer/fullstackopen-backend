@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.static("build"));
 app.use(cors());
 
-morgan.token("body", function (request, response) {
+morgan.token("body", function (request) {
   return JSON.stringify(request.body);
 });
 
@@ -21,7 +21,7 @@ app.use(
 );
 
 // Routes
-app.get("/info", (request, response) => {
+app.get("/info", (request, response, next) => {
   const dateTime = new Date();
 
   Person.find({})
@@ -60,7 +60,7 @@ app.post("/api/persons", (request, response, next) => {
 
   person
     .validate()
-    .then((result) => {
+    .then(() => {
       Person.findOneAndUpdate(
         { name },
         { name, number },
@@ -105,7 +105,7 @@ app.get("/api/persons/:id", (request, response, next) => {
 
 app.delete("/api/persons/:id", (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then((result) => {
+    .then(() => {
       return response.status(204).end();
     })
     .catch((error) => next(error));
@@ -117,7 +117,7 @@ const unknownEndpoint = (request, response) => {
 };
 app.use(unknownEndpoint);
 
-const errorHandler = (error, request, response, next) => {
+const errorHandler = (error, request, response) => {
   console.error(error.message);
 
   if (error.name === "CastError") {
