@@ -56,29 +56,20 @@ app.post("/api/persons", (request, response, next) => {
   const name = request.body.name;
   const number = request.body.number;
 
-  if (!name) {
-    return response.status(400).json({ error: "name missing" });
-  }
+  const person = new Person({ name, number });
 
-  if (typeof name !== "string") {
-    return response.status(400).json({ error: "name is not a string" });
-  }
-
-  if (!number) {
-    return response.status(400).json({ error: "number missing" });
-  }
-
-  if (typeof number !== "string") {
-    return response.status(400).json({ error: "number is not a string" });
-  }
-
-  Person.findOneAndUpdate(
-    { name },
-    { name, number },
-    { upsert: true, new: true }
-  )
-    .then((upsertedPerson) => {
-      return response.json(upsertedPerson);
+  person
+    .validate()
+    .then((result) => {
+      Person.findOneAndUpdate(
+        { name },
+        { name, number },
+        { runValidators: true, upsert: true, new: true }
+      )
+        .then((upsertedPerson) => {
+          return response.json(upsertedPerson);
+        })
+        .catch((error) => next(error));
     })
     .catch((error) => next(error));
 });
@@ -91,7 +82,10 @@ app.put("/api/persons/:id", (request, response, next) => {
     number: body.number,
   };
 
-  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+  Person.findByIdAndUpdate(request.params.id, person, {
+    runValidators: true,
+    new: true,
+  })
     .then((updatedPerson) => {
       return response.json(updatedPerson);
     })
@@ -119,7 +113,7 @@ app.delete("/api/persons/:id", (request, response, next) => {
 
 // Middleware
 const unknownEndpoint = (request, response) => {
-  return response.status(404).send({ error: "unknown endpoint" });
+  return response.status(404).send({ error: "Unknown endpoint" });
 };
 app.use(unknownEndpoint);
 
@@ -127,10 +121,12 @@ const errorHandler = (error, request, response, next) => {
   console.error(error.message);
 
   if (error.name === "CastError") {
-    return response.status(400).send({ error: "malformatted id" });
+    return response.status(400).send({ error: "Malformatted ID" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
   }
 
-  return response.status(500).send({ error: "internal server error" });
+  return response.status(500).send({ error: "Internal server error" });
 };
 app.use(errorHandler);
 
